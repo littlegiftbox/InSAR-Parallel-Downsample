@@ -40,24 +40,24 @@ def quad_decomp_mean(xin,yin,zin,threshold, Nres_min,Nres_max,xout_in,yout_in,zo
 
 def rms_block_demean(x,y,z,Nres_min,Nres_max):
     [xx, yy] = np.meshgrid(x,y)
-    indx_good = z != np.nan
+    indx_good = ~np.isnan(z)
     [nx, ny] = np.shape(z)
     n_block = nx*ny
     xdata = xx[indx_good]
     ydata = yy[indx_good]
     zdata = z[indx_good]
 
-    Ngood = np.shape(zdata)
-    r_good = float(Ngood/n_block)
+    Ngood = np.shape(zdata)[0]
+    r_good = float(Ngood)/n_block
     if (Ngood > 0):
         xout = np.mean(xdata)
         yout = np.mean(ydata)
         zout = np.mean(zdata)
-        lx = np.shape(np.unique(x))
-        ly = np.shape(np.unique(x))
+        lx = np.shape(np.unique(x))[0]
+        ly = np.shape(np.unique(y))[0]
         if ((Ngood<=3) | (lx<=Nres_min) | (ly<=Nres_min)):
             rms_out = 0
-        elif ((Ngood > 5) & (lx>2 & lx < Nres_max) & (ly>2 & ly < Nres_max)):
+        elif ((Ngood > 5) & ((lx>2) & (lx < Nres_max)) & ((ly>2) & (ly < Nres_max))):
             zz = zdata
             zzfit = np.mean(zz)
             dz = zz-zzfit
