@@ -3,6 +3,7 @@ import time
 import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
+from plotting_utilities import *
 
 def main(): 
 
@@ -26,9 +27,10 @@ def main():
     # Downsample look vector
 
     # Plot the downsampled result
-    #plot_insar_data_scatter(xout,yout,zout,image_name):
-    #plot_insar_sample(xout,yout,z,zout,xx1,xx2,yy1,yy2,image_name);
-
+    cmin = -10
+    cmax = 10
+    #plot_insar_data_scatter(xout,yout,zout,image_name);
+    plot_insar_sample(xout,yout,z,zout,xx1,xx2,yy1,yy2,cmin,cmax,'test.png');
 
 if __name__=='__main__':
     main()
