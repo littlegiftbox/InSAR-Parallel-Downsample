@@ -1,8 +1,15 @@
 import numpy as np
 
+def make_insar_downsample(xinsar,yinsar,zinsar,Nmin,Nres_min,Nres_max,method):
+    r1 = 10
+    if method == 'mean':
+        [xout, yout, zout, Npt, rms_out, xx1, xx2, yy1, yy2] = quad_decomp_mean(xinsar, yinsar, zinsar, r1, Nres_min,
+                                                                                Nres_max, [], [], [], [], [], [], [],
+                                                                                [], [])
+
 def quad_decomp_mean(xin,yin,zin,threshold, Nres_min,Nres_max,xout_in,yout_in,zout_in, Ndata_in,rms_in,xx1_in,xx2_in,yy1_in,yy2_in):
-    nx = np.size(xin)
-    ny = np.size(yin)
+    nx = np.shape(xin)[0]
+    ny = np.shape(yin)[0]
     xout = xout_in
     yout = yout_in
     zout = zout_in
@@ -12,10 +19,9 @@ def quad_decomp_mean(xin,yin,zin,threshold, Nres_min,Nres_max,xout_in,yout_in,zo
     xx2 = xx2_in
     yy1 = yy1_in
     yy2 = yy2_in
-
     rms_default = 10
     r_good_default = 0.2
-    if (nx <= Nres_min | ny<=Nres_min):
+    if ((nx <= Nres_min) | (ny<=Nres_min)):
         xout_block_total = np.mean(xin)
         yout_block_total = np.mean(yin)
         z_block_good = zin[~np.isnan(zin)]
@@ -37,6 +43,205 @@ def quad_decomp_mean(xin,yin,zin,threshold, Nres_min,Nres_max,xout_in,yout_in,zo
             xx2 = [xx2, xin(nx)]
             yy1 = [yy1, yin(1)]
             yy2 = [yy2, yin(ny)]
+    else:
+        nx1 = 0
+        nx2 = int(np.floor(nx / 2))
+        nx3 = nx2
+        nx4 = nx
+
+        ny1 = 0
+        ny2 = int(np.floor(ny / 2))
+        ny3 = ny2
+        ny4 = ny
+
+        x1 = xin[nx1:nx2]
+        x2 = xin[nx3:nx4]
+        x3 = x1
+        x4 = x2
+
+        y1 = yin[ny1:ny2]
+        y2 = y1
+
+        y3 = yin[ny3:ny4]
+        y4 = y3
+
+        z1 = zin[ny1:ny2, nx1: nx2]
+        z2 = zin[ny1:ny2, nx3: nx4]
+        z3 = zin[ny3:ny4, nx1: nx2]
+        z4 = zin[ny3:ny4, nx3: nx4]
+
+        xmin1 = xin[nx1]
+        xmax1 = xin[nx2]
+        xmin2 = xin[nx3]
+        xmax2 = xin[nx4]
+
+        ymin1 = yin[ny1]
+        ymax1 = yin[ny2]
+        ymin2 = yin[ny3]
+        ymax2 = yin[ny4]
+
+        [rms1, N1, r1_good, x1_out, y1_out, z1_out] = rms_block_demean(x1, y1, z1, Nres_min, Nres_max)
+        [rms2, N2, r2_good, x2_out, y2_out, z2_out] = rms_block_demean(x2, y2, z2, Nres_min, Nres_max)
+        [rms3, N3, r3_good, x3_out, y3_out, z3_out] = rms_block_demean(x3, y3, z3, Nres_min, Nres_max)
+        [rms4, N4, r4_good, x4_out, y4_out, z4_out] = rms_block_demean(x4, y4, z4, Nres_min, Nres_max)
+
+        if ((rms1 <= threshold) & (N1 > 0) & (r1_good) > (r_good_default)):
+            xout = [xout, x1_out]
+            yout = [yout, y1_out]
+            zout = [zout, z1_out]
+
+            zgood_this_block = z1[~np.isnan(z1)]
+            Ngood_this_block = np.shape(zgood_this_block)[0]
+            dz_this_block = zgood_this_block - z1_out
+            rms_this_block = np.sqrt(sum(dz_this_block** 2) / Ngood_this_block)
+            if (rms_this_block < 1.0e-6):
+                rms_this_block = rms_default;
+
+            rms_out = [rms_out, rms_this_block]
+            Ndata = [Ndata, Ngood_this_block]
+            xx1_this_block = xmin1
+            xx2_this_block = xmax1
+            yy1_this_block = ymin1
+            yy2_this_block = ymax1
+
+            xx1 = [xx1, xx1_this_block]
+            yy1 = [yy1, yy1_this_block]
+            xx2 = [xx2, xx2_this_block]
+            yy2 = [yy2, yy2_this_block]
+        elif ((rms1>threshold) & (N1>0)):
+            xout_in = xout
+            yout_in = yout
+            zout_in = zout
+            xx1_in = xx1
+            xx2_in = xx2
+            yy1_in = yy1
+            yy2_in = yy2
+            Ndata_in = Ndata
+            rms_in = rms_out
+            [xout, yout, zout, Ndata, rms_out, xx1, xx2, yy1, yy2] = quad_decomp_mean(x1, y1, z1,
+                                                                                      threshold, Nres_min, Nres_max,
+                                                                                      xout_in, yout_in, zout_in,
+                                                                                      Ndata_in, rms_in, xx1_in, xx2_in,
+                                                                                      yy1_in, yy2_in);
+
+        if ((rms2 <= threshold) & (N2 > 0) & (r2_good) > (r_good_default)):
+            xout = [xout, x2_out]
+            yout = [yout, y2_out]
+            zout = [zout, z2_out]
+
+            zgood_this_block = z2[~np.isnan(z2)]
+            Ngood_this_block = np.shape(zgood_this_block)[0]
+            dz_this_block = zgood_this_block - z2_out
+            rms_this_block = np.sqrt(sum(dz_this_block** 2) / Ngood_this_block)
+            if (rms_this_block < 1.0e-6):
+                rms_this_block = rms_default;
+
+            rms_out = [rms_out, rms_this_block]
+            Ndata = [Ndata, Ngood_this_block]
+            xx1_this_block = xmin2
+            xx2_this_block = xmax2
+            yy1_this_block = ymin1
+            yy2_this_block = ymax1
+
+            xx1 = [xx1, xx1_this_block]
+            yy1 = [yy1, yy1_this_block]
+            xx2 = [xx2, xx2_this_block]
+            yy2 = [yy2, yy2_this_block]
+        elif ((rms2>threshold) & (N2>0)):
+            xout_in = xout
+            yout_in = yout
+            zout_in = zout
+            xx1_in = xx1
+            xx2_in = xx2
+            yy1_in = yy1
+            yy2_in = yy2
+            Ndata_in = Ndata
+            rms_in = rms_out
+            [xout, yout, zout, Ndata, rms_out, xx1, xx2, yy1, yy2] = quad_decomp_mean(x2,y2,z2,threshold,
+                                                                                      Nres_min,Nres_max,xout_in,yout_in,
+                                                                                      zout_in,Ndata_in,rms_in,
+                                                                                      xx1_in,xx2_in,yy1_in,yy2_in)
+
+        if ((rms3 <= threshold) & (N3 > 0) & (r3_good) > (r_good_default)):
+            xout = [xout, x3_out]
+            yout = [yout, y3_out]
+            zout = [zout, z3_out]
+
+            zgood_this_block = z3[~np.isnan(z3)]
+            Ngood_this_block = np.shape(zgood_this_block)[0]
+            dz_this_block = zgood_this_block - z3_out
+            rms_this_block = np.sqrt(sum(dz_this_block** 2) / Ngood_this_block)
+            if (rms_this_block < 1.0e-6):
+                rms_this_block = rms_default;
+
+            rms_out = [rms_out, rms_this_block]
+            Ndata = [Ndata, Ngood_this_block]
+            xx1_this_block = xmin1
+            xx2_this_block = xmax1
+            yy1_this_block = ymin2
+            yy2_this_block = ymax2
+
+            xx1 = [xx1, xx1_this_block]
+            yy1 = [yy1, yy1_this_block]
+            xx2 = [xx2, xx2_this_block]
+            yy2 = [yy2, yy2_this_block]
+        elif ((rms3>threshold) & (N3>0)):
+            xout_in = xout
+            yout_in = yout
+            zout_in = zout
+            xx1_in = xx1
+            xx2_in = xx2
+            yy1_in = yy1
+            yy2_in = yy2
+            Ndata_in = Ndata
+            rms_in = rms_out
+            [xout, yout, zout, Ndata, rms_out, xx1, xx2, yy1, yy2] = quad_decomp_mean(x3,y3,z3,threshold,
+                                                                                      Nres_min,Nres_max,xout_in,yout_in,
+                                                                                      zout_in,Ndata_in,rms_in,
+                                                                                      xx1_in,xx2_in,yy1_in,yy2_in)
+
+        if ((rms4 <= threshold) & (N4 > 0) & (r4_good) > (r_good_default)):
+            xout = [xout, x4_out]
+            yout = [yout, y4_out]
+            zout = [zout, z4_out]
+
+            zgood_this_block = z4[~np.isnan(z4)]
+            Ngood_this_block = np.shape(zgood_this_block)[0]
+            dz_this_block = zgood_this_block - z4_out
+            rms_this_block = np.sqrt(sum(dz_this_block** 2) / Ngood_this_block)
+            if (rms_this_block < 1.0e-6):
+                rms_this_block = rms_default
+
+            rms_out = [rms_out, rms_this_block]
+            Ndata = [Ndata, Ngood_this_block]
+            xx1_this_block = xmin2
+            xx2_this_block = xmax2
+            yy1_this_block = ymin2
+            yy2_this_block = ymax2
+
+            xx1 = [xx1, xx1_this_block]
+            yy1 = [yy1, yy1_this_block]
+            xx2 = [xx2, xx2_this_block]
+            yy2 = [yy2, yy2_this_block]
+        elif ((rms4>threshold) & (N4>0)):
+            xout_in = xout
+            yout_in = yout
+            zout_in = zout
+            xx1_in = xx1
+            xx2_in = xx2
+            yy1_in = yy1
+            yy2_in = yy2
+            Ndata_in = Ndata
+            rms_in = rms_out
+            [xout, yout, zout, Ndata, rms_out, xx1, xx2, yy1, yy2] = quad_decomp_mean(x4,y4,z4,threshold,
+                                                                                      Nres_min,Nres_max,xout_in,yout_in,
+                                                                                      zout_in,Ndata_in,rms_in,
+                                                                                      xx1_in,xx2_in,yy1_in,yy2_in)
+
+    return xout,yout,zout,Ndata,rms_out,xx1,xx2,yy1,yy2
+
+
+
 
 def rms_block_demean(x,y,z,Nres_min,Nres_max):
     [xx, yy] = np.meshgrid(x,y)
