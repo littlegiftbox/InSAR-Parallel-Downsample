@@ -40,9 +40,9 @@ def plot_insar_sample(xout,yout,z,zout,xx1,xx2,yy1,yy2,vmin,vmax,image_name):
     custom_cmap.set_array(np.arange(vmin, vmax, 100));
     cb = plt.colorbar(custom_cmap);
     cb.set_label('put unit here', fontsize=12);
-    plt.ylim([np.min(xx1), np.max(xx2)]);
-    plt.xlim([np.min(yy1), np.max(yy2)]);
-    plt.show()
+    plt.xlim([np.min(xx1), np.max(xx2)]);
+    plt.ylim([np.min(yy1), np.max(yy2)]);
+    #plt.show()
     plt.savefig(image_name)
 
 

@@ -3,8 +3,7 @@ import time
 import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
-from make_insar_downsample import *
-from nonrecursive_downsample import *
+#from nonrecursive_downsample import *
 from plotting_utilities import *
 from make_insar_downsample import *
 
@@ -27,13 +26,14 @@ def main():
     Nres_min = 20 # minimum grid size
     Nres_max = 400 # maxium grid size
     method = 'mean'
+    t0=time.time()
     [xout,yout,zout,Npt,rms_out,xx1,xx2,yy1,yy2]=make_insar_downsample(xinsar,yinsar,zinsar,Nmin,Nres_min,Nres_max,method);
-
+    print('Elapsed time: ',time.time()-t0)
     # Downsample look vector
 
     # Plot the downsampled result
-    cmin = -10
-    cmax = 10
+    cmin = np.min(zout)
+    cmax = np.max(zout)
     #plot_insar_data_scatter(xout,yout,zout,image_name);
     plot_insar_sample(xout, yout, zinsar, zout, xx1, xx2, yy1, yy2, cmin, cmax, 'test.png');
 
