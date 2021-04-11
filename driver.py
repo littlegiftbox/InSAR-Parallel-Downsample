@@ -4,6 +4,7 @@ import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
 from plotting_utilities import *
+from make_insar_downsample import *
 
 def main(): 
 
@@ -22,7 +23,8 @@ def main():
     Nmin = 3000 # minimum number of downsampled grids
     Nres_min = 20 # minimum grid size
     Nres_max = 400 # maxium grid size
-    #[xout,yout,zout,Npt,rms_out,xx1,xx2,yy1,yy2]=make_insar_downsample(xinsar,yinsar,zinsar,Nmin,Nres_min,Nres_max,method);
+    method = 'mean'
+    [xout,yout,zout,Npt,rms_out,xx1,xx2,yy1,yy2]=make_insar_downsample(xinsar,yinsar,zinsar,Nmin,Nres_min,Nres_max,method);
 
     # Downsample look vector
 
@@ -30,7 +32,7 @@ def main():
     cmin = -10
     cmax = 10
     #plot_insar_data_scatter(xout,yout,zout,image_name);
-    plot_insar_sample(xout,yout,z,zout,xx1,xx2,yy1,yy2,cmin,cmax,'test.png');
+    plot_insar_sample(xout, yout, zinsar, zout, xx1, xx2, yy1, yy2, cmin, cmax, 'test.png');
 
 if __name__=='__main__':
     main()
