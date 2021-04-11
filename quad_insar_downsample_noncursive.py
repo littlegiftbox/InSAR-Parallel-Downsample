@@ -1,6 +1,6 @@
 import numpy as np
 from make_insar_downsample import *
-
+import math
 class node:
     def __init__(self, minx, miny, maxx, maxy):
         self.minx = minx
@@ -63,7 +63,7 @@ def quad_decomp_mean_nonrecursive(xin,yin,zin,threshold, Nres_min,Nres_max,xout_
     rms_default = 10
     r_good_default = 0.2
 
-    max_depth = int(np.floor(np.log2(nx/threshold))+1)
+    max_depth = int(math.log((nx*ny)/(threshold**2), 4))+1
     # create array aseemble for each depth featuring a size of 4^(depth)
     index_array_assemble = []
     for i_depth in range(max_depth):
