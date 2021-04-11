@@ -6,7 +6,31 @@ def make_insar_downsample(xinsar,yinsar,zinsar,Nmin,Nres_min,Nres_max,method):
         [xout, yout, zout, Npt, rms_out, xx1, xx2, yy1, yy2] = quad_decomp_mean(xinsar, yinsar, zinsar, r1, Nres_min,
                                                                                 Nres_max, [], [], [], [], [], [], [],
                                                                                 [], [])
-        stop = 1
+    Ndata = len(zout)
+    Nint = 0
+    while (Ndata < Nmin):
+        N1 = len(zout)
+        r1 = r1 * 0.85
+        if method == 'mean':
+            [xout, yout, zout, Npt, rms_out, xx1, xx2, yy1, yy2] = quad_decomp_mean(xinsar, yinsar, zinsar, r1,
+                                                                                    Nres_min, Nres_max, [], [], [], [],
+                                                                                    [], [], [], [], [])
+        Ndata = len(zout)
+        N2 = len(zout)
+        Nint = Nint + 1
+        if ((N2 > 0.8 * Nmin) & ((N2-N1) < 0.005 * N1)):
+            break
+    xout = np.array(xout)
+    yout = np.array(yout)
+    zout = np.array(zout)
+    Npt = np.array(Npt)
+    rms_out = np.array(rms_out)
+    xx1 = np.array(xx1)
+    xx2 = np.array(xx2)
+    yy1 = np.array(yy1)
+    yy2 = np.array(yy2)
+    return xout, yout, zout, Npt, rms_out, xx1, xx2, yy1, yy2
+
 
 def quad_decomp_mean(xin,yin,zin,threshold, Nres_min,Nres_max,xout_in,yout_in,zout_in, Ndata_in,rms_in,xx1_in,xx2_in,yy1_in,yy2_in):
     nx = np.shape(xin)[0]
