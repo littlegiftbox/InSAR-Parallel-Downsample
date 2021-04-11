@@ -3,8 +3,11 @@ import time
 import netCDF4 as nc
 import numpy as np
 import matplotlib.pyplot as plt
+from make_insar_downsample import *
+from nonrecursive_downsample import *
 from plotting_utilities import *
 from make_insar_downsample import *
+
 
 def main(): 
 
