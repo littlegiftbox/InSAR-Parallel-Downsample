@@ -1,4 +1,5 @@
 import numpy as np
+from multiprocessing import Pool
 
 def make_insar_downsample(xinsar,yinsar,zinsar,Nmin,Nres_min,Nres_max,method):
     r1 = 10
@@ -56,7 +57,7 @@ def quad_decomp_mean(xin,yin,zin,threshold, Nres_min,Nres_max,xout_in,yout_in,zo
         if (N_block_good > 0 & r_good > r_good_default):
             zout_block_total = np.mean(z_block_good)
             dz_block = z_block_good - zout_block_total
-            rms_block_total = np.sqrt(sum(sum(dz_block** 2)) / N_block_good)
+            rms_block_total = np.sqrt(sum(dz_block** 2) / N_block_good)
             if (rms_block_total < 1.0e-6):
                 rms_block_total = 10
             xout = [xout, xout_block_total]
@@ -276,7 +277,6 @@ def rms_block_demean(x,y,z,Nres_min,Nres_max):
     xdata = xx[indx_good]
     ydata = yy[indx_good]
     zdata = z[indx_good]
-
     Ngood = np.shape(zdata)[0]
     r_good = float(Ngood)/n_block
     if (Ngood > 0):
