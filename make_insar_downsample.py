@@ -1,6 +1,7 @@
 import numpy as np
 from multiprocessing import Pool
 
+
 def make_insar_downsample(xinsar,yinsar,zinsar,Nmin,Nres_min,Nres_max,method):
     r1 = 10
     if method == 'mean':
@@ -264,9 +265,8 @@ def quad_decomp_mean(xin,yin,zin,threshold, Nres_min,Nres_max,xout_in,yout_in,zo
                                                                                       zout_in,Ndata_in,rms_in,
                                                                                       xx1_in,xx2_in,yy1_in,yy2_in)
 
+
     return xout,yout,zout,Ndata,rms_out,xx1,xx2,yy1,yy2
-
-
 
 
 def rms_block_demean(x,y,z,Nres_min,Nres_max):
@@ -300,7 +300,6 @@ def rms_block_demean(x,y,z,Nres_min,Nres_max):
         zout = np.nan
         rms_out = 0
     return rms_out, Ngood, r_good, xout, yout, zout
-
 
 
 if __name__ == '__main__':
